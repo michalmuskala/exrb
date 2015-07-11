@@ -1,11 +1,11 @@
 # coding: utf-8
 lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require 'exrb_ruby/version'
+require 'exrb/version'
 
 Gem::Specification.new do |spec|
-  spec.name          = "exrb_ruby"
-  spec.version       = ExrbRuby::VERSION
+  spec.name          = "exrb"
+  spec.version       = Exrb::VERSION
   spec.authors       = ["Michal Muskala"]
   spec.email         = ["michal@muskala.eu"]
   spec.summary       = %q{TODO: Write a short summary. Required.}
@@ -20,4 +20,6 @@ Gem::Specification.new do |spec|
 
   spec.add_development_dependency "bundler", "~> 1.7"
   spec.add_development_dependency "rake", "~> 10.0"
+
+  spec.add_dependency "adamantium", "~> 0.2.0"
 end
