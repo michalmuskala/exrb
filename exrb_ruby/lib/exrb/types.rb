@@ -68,7 +68,7 @@ module Exrb
     end
   end
 
-  class BitBinary
+  class Bitstring
     include Adamantium
     attr_reader :bits, :value
 

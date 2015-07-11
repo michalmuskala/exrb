@@ -22,7 +22,7 @@ module Exrb
       Function     => :write_fun,
       NewFunction  => :write_new_fun,
       Export       => :write_export,
-      BitBinary    => :write_bit_binary,
+      Bitstring    => :write_bit_binary,
       TrueClass    => :write_true_atom,
       FalseClass   => :write_false_atom,
       NilClass     => :write_nil_atom

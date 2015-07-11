@@ -169,7 +169,7 @@ module Exrb
 
     def read_bit_binary
       len = read_len
-      BitBinary.new(read_byte, read(len))
+      Bitstring.new(read_byte, read(len))
     end
 
     def read_new_float
