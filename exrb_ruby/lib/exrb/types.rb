@@ -5,13 +5,10 @@ module Exrb
 
   class Tuple
     include Adamantium
+    attr_reader :values
 
     def initialize(values)
       @values = values
-    end
-
-    def to_a
-      @values
     end
 
     def elem(idx)
@@ -27,33 +24,43 @@ module Exrb
       end
     end
 
+    def size
+      @values.size
+    end
+
     def inspect
       "#Tuple<#{@values.map(&:inspect).join(", ")}>"
     end
   end
 
-  class ErlangString
+  class Binary
     include Adamantium
+    attr_reader :value
 
     def initialize(value)
       @value = value
     end
 
-    def to_s
-      @value
+    def size
+      @value.size
     end
 
     def inspect
-      "'#{@value}'"
+      "<<#{@value.each_byte.to_a.join(", ")}>>"
     end
   end
 
   class ImproperList
     include Adamantium
+    attr_reader :list, :tail
 
     def initialize(list, tail)
       @list = list
       @tail = tail
+    end
+
+    def size
+      @list.size
     end
 
     def inspect
@@ -63,10 +70,15 @@ module Exrb
 
   class BitBinary
     include Adamantium
+    attr_reader :bits, :value
 
     def initialize(bits, value)
       @bits = bits
       @value = value
+    end
+
+    def size
+      @value.size
     end
 
     def inspect
@@ -77,9 +89,9 @@ module Exrb
 
   class Opaque
     include Adamantium
+    attr_reader :node, :value
 
-    def initialize(tag, node, value)
-      @tag = tag
+    def initialize(node, value)
       @node = node
       @value = value
     end
@@ -93,8 +105,27 @@ module Exrb
   Port = Class.new(Opaque)
   Pid = Class.new(Opaque)
 
+  class NewReference
+    include Adamantium
+    attr_reader :node, :value
+
+    def initialize(node, value)
+      @node = node
+      @value = value
+    end
+
+    def length
+      (@value.size - 1) / 4
+    end
+
+    def inspect
+      "#NewReference<#{hash}>"
+    end
+  end
+
   class Function
     include Adamantium
+    attr_reader :pid, :mod, :idx, :uniq, :terms
 
     def initialize(pid, mod, idx, uniq, terms)
       @pid = pid
@@ -104,6 +135,10 @@ module Exrb
       @terms = terms
     end
 
+    def size
+      @terms.size
+    end
+
     def inspect
       "#Function<#{hash}>"
     end
@@ -111,6 +146,7 @@ module Exrb
 
   class NewFunction
     include Adamantium
+    attr_reader :size, :data
 
     def initialize(size, data)
       @size = size
@@ -124,6 +160,7 @@ module Exrb
 
   class Export
     include Adamantium
+    attr_reader :mod, :fun, :arity
 
     def initialize(mod, fun, arity)
       @mod = mod
@@ -132,7 +169,7 @@ module Exrb
     end
 
     def inspect
-      "#Export<#{hash}>"
+      "&#{@mod}.#{@fun}/#{@arity}"
     end
   end
 

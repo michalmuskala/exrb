@@ -1,6 +1,7 @@
 require "stringio"
 
 require_relative "./decoder.rb"
+require_relative "./encoder.rb"
 
 module Exrb
   class PortConnection
@@ -16,13 +17,12 @@ module Exrb
     private
 
     def loop(handler)
-      while packed = read(4)
-        len = packed.unpack("L>")[0]
-        raw = read(len)
-        payload = StringIO.new(raw)
-        response = handle_message(decode(payload), handler)
-        @streamout.write(packed)
-        @streamout.write(raw)
+      while len = read_len
+        decoded = decode(read(len))
+        response = handle_message(decoded, handler)
+        encoded = encode(response)
+        write_len(encoded.size)
+        write(encoded)
       end
     end
 
@@ -32,14 +32,34 @@ module Exrb
       message.put_elem(1, response)
     end
 
+    def encode(message)
+      io = StringIO.new
+      Encoder.new(io).call(message)
+      io.string.force_encoding("ASCII")
+    end
+
     def decode(payload)
-      Decoder.new(payload).call
+      Decoder.new(StringIO.new(payload)).call
     end
 
     def prepare(stream)
       stream.sync = true
       stream.binmode
       stream
+    end
+
+    def read_len
+      data = read(4)
+      data && data.unpack("L>")[0]
+    end
+
+    def write_len(len)
+      write([len].pack("L>"))
+    end
+
+    def write(data)
+      n = @streamout.write(data)
+      raise IOError, "data truncated" if n < data.size
     end
 
     def read(n)

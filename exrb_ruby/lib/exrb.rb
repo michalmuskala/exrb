@@ -1,5 +1,5 @@
-require "exrb/version"
+require_relative "exrb/version.rb"
 
 module Exrb
-  # Your code goes here...
+  PROTOCOL_VERSION = 131
 end

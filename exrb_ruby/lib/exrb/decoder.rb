@@ -4,13 +4,11 @@ require_relative "./types.rb"
 
 module Exrb
   class Decoder
-    PROTOCOL_VERSION = 131
-
     ParseError = Class.new(StandardError)
 
     INTEGER_DECODERS = {
       97 => :read_small_integer,
-      98 => :read_ineteger
+      98 => :read_integer
     }.freeze
 
     ATOM_DECODERS = {
@@ -53,7 +51,7 @@ module Exrb
     end
 
     def call
-      raise "Unsupported version" if read_byte != 131
+      raise "Unsupported version" if read_byte != PROTOCOL_VERSION
       term
     end
 
@@ -84,20 +82,19 @@ module Exrb
     end
 
     def read_atom
-      len = read(2).unpack("S>")[0]
-      decode_atom(read(len))
+      decode_atom(read(read_short_len))
     end
 
     def read_reference
-      Reference.new(101, atom, read(5))
+      Reference.new(atom, read(5))
     end
 
     def read_port
-      Port.new(102, atom, read(5))
+      Port.new(atom, read(5))
     end
 
     def read_pid
-      Pid.new(103, atom, read(9))
+      Pid.new(atom, read(9))
     end
 
     def read_small_tuple
@@ -117,7 +114,7 @@ module Exrb
     end
 
     def read_string
-      read(read_len).unpack("C*")
+      read(read_short_len).unpack("C*")
     end
 
     def read_list
@@ -131,7 +128,12 @@ module Exrb
     end
 
     def read_binary
-      read(read_len).force_encoding("UTF-8")
+      str = read(read_len).force_encoding("UTF-8")
+      if str.valid_encoding?
+        str
+      else
+        Binary.new(str)
+      end
     end
 
     def read_small_big
@@ -143,8 +145,8 @@ module Exrb
     end
 
     def read_new_reference
-      len = read(2).unpack("S>")[0]
-      Reference.new(114, atom, read(len * 4 + 1))
+      len = read_short_len
+      NewReference.new(atom, read(len * 4 + 1))
     end
 
     def read_small_atom
@@ -175,8 +177,7 @@ module Exrb
     end
 
     def read_atom_utf8
-      len = read(2).unpack("S>")[0]
-      decode_atom(read(len).to_sym)
+      decode_atom(read(read_short_len).to_sym)
     end
 
     def read_small_atom_utf8
@@ -202,6 +203,10 @@ module Exrb
 
     def read_len
       read(4).unpack("L>")[0]
+    end
+
+    def read_short_len
+      read(2).unpack("S>")[0]
     end
 
     def read_byte
