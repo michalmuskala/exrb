@@ -189,12 +189,10 @@ module Exrb
     end
 
     def read_big(len)
-      negative = read(1)
-      raw =
-        read(len).each_byte
-          .reduce([0, 1]) { |(acc, exp), n| [acc + n * exp, exp * 256] }
-      raw *= -1 if negative
-      raw
+      negative = read_byte
+      num = read(len).each_byte.to_a.reverse_each
+              .reduce(0) { |acc, n| (acc << 8) | n }
+      negative.zero? ? num : -num
     end
 
     def read_terms(n)

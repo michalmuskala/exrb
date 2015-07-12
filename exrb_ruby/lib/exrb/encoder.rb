@@ -144,7 +144,7 @@ module Exrb
       write_byte(111)
       len = (big.bit_length / 8.0).ceil
       write_len(len)
-      write_byte(bit < 0 ? 1 : 0)
+      write_byte(big < 0 ? 1 : 0)
       (0..len).each {
         write_byte(big & 255)
         big >>= 8
